@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electroplating ASF Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .calculator-container {
+            width: 100%;
+            max-width: 32rem;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .calculator-container {
+                padding: 1.5rem;
+            }
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            color: #2d3748;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a0aec0;
+            margin-bottom: 1.5rem;
+        }
+
+        form > div + div {
+            margin-top: 1.5rem;
+        }
+
+        .input-group label, .form-section-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 0.25rem;
+        }
+        
+        .radio-group {
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .radio-group > div + div {
+            margin-left: 1.5rem;
+        }
+
+        .radio-group div {
+            display: flex;
+            align-items: center;
+        }
+
+        .radio-label {
+            margin-left: 0.5rem;
+            font-size: 0.875rem;
+            color: #111827;
+        }
+        
+        input[type="radio"] {
+            height: 1rem;
+            width: 1rem;
+        }
+        
+        .dimensions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .dimensions-grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+        }
+
+        .input-field, select.input-field {
+            margin-top: 0.25rem;
+            display: block;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            font-size: 0.875rem;
+            box-sizing: border-box;
+        }
+
+        .input-field::placeholder {
+            color: #9ca3af;
+        }
+
+        .input-field:focus, select.input-field:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+        }
+        
+        .input-field[readonly] {
+            background-color: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #ffffff;
+            background-color: #4f46e5;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .calculate-btn:hover {
+            background-color: #4338ca;
+        }
+        
+        .calculate-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.4);
+        }
+
+        #results-container {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        #results-container h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            margin-top: 0;
+        }
+
+        #results-container > div > div + div {
+            margin-top: 0.75rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            background-color: #f9fafb;
+        }
+        
+        .result-row.highlight {
+            background-color: #f0fdf4;
+            padding: 1rem;
+        }
+        
+        .result-row span:first-child {
+            color: #4b5563;
+        }
+        .result-row.highlight span:first-child {
+            color: #166534;
+        }
+
+        .result-row span:last-child {
+            font-weight: 700;
+            color: #111827;
+        }
+        .result-row.highlight span:last-child {
+            color: #14532d;
+            font-size: 1.125rem;
+        }
+
+        #error-message {
+            margin-top: 1rem;
+            text-align: center;
+            color: #dc2626;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <h1>Electroplating ASF Calculator</h1>
+        <p class="subtitle">Calculate target amperage for your plating setup.</p>
+
+        <!-- Main Form -->
+        <form id="calculator-form">
+            <!-- Units Selection -->
+            <div>
+                <label class="form-section-label">Measurement Units</label>
+                <div class="radio-group">
+                    <div>
+                        <input id="unit-in" name="unit" type="radio" value="in" checked>
+                        <label for="unit-in" class="radio-label">Inches (in)</label>
+                    </div>
+                    <div>
+                        <input id="unit-mm" name="unit" type="radio" value="mm">
+                        <label for="unit-mm" class="radio-label">Millimeters (mm)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shape Selection -->
+            <div>
+                <label class="form-section-label">Part Shape</label>
+                <div class="radio-group">
+                    <div>
+                        <input id="shape-rect" name="shape" type="radio" value="rect" checked>
+                        <label for="shape-rect" class="radio-label">Rectangular</label>
+                    </div>
+                    <div>
+                        <input id="shape-circ" name="shape" type="radio" value="circ">
+                        <label for="shape-circ" class="radio-label">Circular</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dimension Inputs -->
+            <div id="dimensions-container">
+                <!-- Rectangular Dimensions -->
+                <div id="rect-dims" class="dimensions-grid">
+                    <div class="input-group">
+                        <label for="length">Length (<span class="unit-label">in</span>)</label>
+                        <input type="number" name="length" id="length" class="input-field" placeholder="e.g., 6">
+                    </div>
+                    <div class="input-group">
+                        <label for="width">Width (<span class="unit-label">in</span>)</label>
+                        <input type="number" name="width" id="width" class="input-field" placeholder="e.g., 4">
+                    </div>
+                </div>
+                <!-- Circular Dimensions -->
+                <div id="circ-dims" class="hidden">
+                    <div class="input-group">
+                        <label for="diameter">Diameter (<span class="unit-label">in</span>)</label>
+                        <input type="number" name="diameter" id="diameter" class="input-field" placeholder="e.g., 5">
+                    </div>
+                </div>
+            </div>
+
+             <!-- Number of Sides -->
+            <div class="input-group">
+                <label for="sides">Number of Sides to Plate</label>
+                <input type="number" name="sides" id="sides" class="input-field" placeholder="e.g., 2" value="1">
+            </div>
+
+            <!-- Plating Presets -->
+            <div>
+                <label for="plating-preset" class="form-section-label">Plating Type Preset</label>
+                <select id="plating-preset" name="plating-preset" class="input-field">
+                    <option value="custom">Custom Range</option>
+                    <option value="bright-nickel">Bright Nickel (20-40 ASF)</option>
+                    <option value="copper-strike">Copper Strike (10-30 ASF)</option>
+                    <option value="bright-acid-copper">Bright Acid Copper (20-50 ASF)</option>
+                    <option value="silver">Silver (5-20 ASF)</option>
+                </select>
+            </div>
+
+            <!-- ASF Range -->
+            <div class="dimensions-grid">
+                <div class="input-group">
+                    <label for="min-asf">Min Amps/ft² (ASF)</label>
+                    <input type="number" name="min-asf" id="min-asf" class="input-field" placeholder="e.g., 10">
+                </div>
+                <div class="input-group">
+                    <label for="max-asf">Max Amps/ft² (ASF)</label>
+                    <input type="number" name="max-asf" id="max-asf" class="input-field" placeholder="e.g., 25">
+                </div>
+            </div>
+
+        </form>
+
+        <!-- Results Section -->
+        <div id="results-container" class="hidden">
+            <h2>Calculation Results</h2>
+            <div>
+                <div class="result-row">
+                    <span>Total Surface Area:</span>
+                    <span id="result-area"></span>
+                </div>
+                <div class="result-row highlight">
+                    <span>Target Current Range:</span>
+                    <span id="result-amps"></span>
+                </div>
+            </div>
+        </div>
+        <div id="error-message" class="hidden"></div>
+    </div>
+
+    <script>
+        // DOM element references
+        const form = document.getElementById('calculator-form');
+        const unitRadios = document.querySelectorAll('input[name="unit"]');
+        const shapeRadios = document.querySelectorAll('input[name="shape"]');
+        const unitLabels = document.querySelectorAll('.unit-label');
+        const rectDims = document.getElementById('rect-dims');
+        const circDims = document.getElementById('circ-dims');
+        const resultsContainer = document.getElementById('results-container');
+        const errorMessage = document.getElementById('error-message');
+        const resultAreaEl = document.getElementById('result-area');
+        const resultAmpsEl = document.getElementById('result-amps');
+        const platingPresetEl = document.getElementById('plating-preset');
+        const minAsfEl = document.getElementById('min-asf');
+        const maxAsfEl = document.getElementById('max-asf');
+
+
+        // --- Event Listeners ---
+
+        // Auto-calculate on any input event within the form
+        form.addEventListener('input', calculate);
+
+        // Handle unit changes to update labels
+        unitRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const selectedUnit = this.value;
+                unitLabels.forEach(label => {
+                    label.textContent = selectedUnit;
+                });
+            });
+        });
+
+        // Handle shape changes to toggle dimension inputs
+        shapeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'rect') {
+                    rectDims.classList.remove('hidden');
+                    circDims.classList.add('hidden');
+                } else {
+                    rectDims.classList.add('hidden');
+                    circDims.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Handle preset changes
+        platingPresetEl.addEventListener('change', function() {
+            const presets = {
+                'custom': { min: '', max: '' },
+                'bright-nickel': { min: 20, max: 40 },
+                'copper-strike': { min: 10, max: 30 },
+                'bright-acid-copper': { min: 20, max: 50 },
+                'silver': { min: 5, max: 20 }
+            };
+
+            const selectedPreset = presets[this.value];
+            
+            minAsfEl.value = selectedPreset.min;
+            maxAsfEl.value = selectedPreset.max;
+
+            const isCustom = this.value === 'custom';
+            minAsfEl.readOnly = !isCustom;
+            maxAsfEl.readOnly = !isCustom;
+            if (isCustom) {
+                minAsfEl.focus();
+            }
+            // Manually trigger calculation after preset is applied
+            calculate();
+        });
+
+        // --- Calculation Logic ---
+        function calculate() {
+            // Get form data directly from the DOM
+            const unit = document.querySelector('input[name="unit"]:checked').value;
+            const shape = document.querySelector('input[name="shape"]:checked').value;
+            const length = parseFloat(document.getElementById('length').value);
+            const width = parseFloat(document.getElementById('width').value);
+            const diameter = parseFloat(document.getElementById('diameter').value);
+            const sides = parseInt(document.getElementById('sides').value, 10);
+            const minAsf = parseFloat(document.getElementById('min-asf').value);
+            const maxAsf = parseFloat(document.getElementById('max-asf').value);
+
+            // Input validation
+            const requiredFields = [sides, minAsf, maxAsf];
+            if (shape === 'rect') {
+                requiredFields.push(length, width);
+            } else {
+                requiredFields.push(diameter);
+            }
+
+            // Silently exit if not all fields are filled
+            if (requiredFields.some(isNaN)) {
+                 resultsContainer.classList.add('hidden');
+                 errorMessage.classList.add('hidden');
+                 return;
+            }
+
+            // Show error for non-positive numbers
+            if (requiredFields.some(v => v <= 0)) {
+                 showError("Please fill in all fields with positive numbers.");
+                 resultsContainer.classList.add('hidden');
+                 return;
+            }
+
+            // Hide error message if validation passes
+            errorMessage.classList.add('hidden');
+
+            let singleSideArea = 0;
+
+            // Calculate area based on shape
+            if (shape === 'rect') {
+                singleSideArea = length * width;
+            } else { // circ
+                const radius = diameter / 2;
+                singleSideArea = Math.PI * radius * radius;
+            }
+            
+            let totalAreaInSqUnits = singleSideArea * sides;
+
+            // Conversion factors to square feet
+            const SQIN_PER_SQFT = 144;
+            const SQMM_PER_SQFT = 92903.04;
+
+            let totalAreaSqFt = 0;
+            if (unit === 'in') {
+                totalAreaSqFt = totalAreaInSqUnits / SQIN_PER_SQFT;
+            } else { // mm
+                totalAreaSqFt = totalAreaInSqUnits / SQMM_PER_SQFT;
+            }
+
+            // Calculate amperage range
+            const minAmps = totalAreaSqFt * minAsf;
+            const maxAmps = totalAreaSqFt * maxAsf;
+
+            // Display the results
+            displayResults(totalAreaSqFt, minAmps, maxAmps);
+        }
+
+        function displayResults(area, minAmps, maxAmps) {
+            resultAreaEl.textContent = `${area.toFixed(4)} ft²`;
+            resultAmpsEl.textContent = `${minAmps.toFixed(2)} - ${maxAmps.toFixed(2)} Amps`;
+            resultsContainer.classList.remove('hidden');
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        // Trigger calculation on page load to handle initial state
+        calculate();
+    </script>
+</body>
+</html>
