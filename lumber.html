@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumber Optimizer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+        .container-main {
+            max-width: 1400px;
+            margin: auto;
+            padding: 1rem;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background-color: #e5e7eb;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        .flex-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        @media (min-width: 1024px) {
+            .flex-container {
+                flex-direction: row;
+            }
+            .lg-w-1-3 {
+                width: 33.333333%;
+            }
+            .lg-w-2-3 {
+                width: 66.666667%;
+            }
+        }
+        .section-box {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .section-box h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .form-input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-input-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        .form-input-group input[type="number"], .form-input-group input[type="text"] {
+            margin-top: 0.25rem;
+            display: block;
+            width: 100%;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            padding: 0.5rem;
+        }
+        .form-input-group input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 1px #4f46e5;
+            outline: none;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-group input[type="checkbox"] {
+            height: 1rem;
+            width: 1rem;
+            color: #4f46e5;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            accent-color: #4f46e5;
+        }
+        .checkbox-group label {
+            margin-left: 0.5rem;
+            font-size: 0.875rem;
+            color: #1f2937;
+        }
+        .submit-button {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: white;
+            background-color: #4f46e5;
+        }
+        .submit-button:hover {
+            background-color: #4338ca;
+        }
+        .part-item, .stock-item {
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            overflow: hidden;
+            font-size: 0.75rem;
+            line-height: 1rem;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            min-width: 8rem;
+            min-height: 8rem;
+            border: 2px solid;
+        }
+        .stock-item {
+            margin-bottom: 1rem;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .context-menu {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        .context-menu button {
+            padding: 0.5rem 1rem;
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s;
+        }
+        .context-menu button:hover {
+            background-color: #f3f4f6;
+        }
+        .part-info, .stock-info {
+            z-index: 1;
+        }
+        .text-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .selected-item {
+            outline: 2px solid #6366f1;
+            outline-offset: 2px;
+        }
+        .display-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .stock-display-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .text-gray-500 {
+            color: #6b7280;
+        }
+        .text-gray-600 {
+            color: #4b5563;
+        }
+        .text-red-600 {
+            color: #dc2626;
+        }
+        .text-gray-800 {
+            color: #1f2937;
+        }
+        .text-white {
+            color: white;
+        }
+        .text-sm {
+            font-size: 0.875rem;
+        }
+        .text-xs {
+            font-size: 0.75rem;
+        }
+        .font-medium {
+            font-weight: 500;
+        }
+        .font-semibold {
+            font-weight: 600;
+        }
+        .font-normal {
+            font-weight: 400;
+        }
+        .flex-items-center {
+            display: flex;
+            align-items: center;
+        }
+        .space-x-4 > * + * {
+            margin-left: 1rem;
+        }
+        .justify-center {
+            justify-content: center;
+        }
+        .justify-end {
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-main">
+    <div class="header">
+        <h1>Lumber Optimizer</h1>
+    </div>
+
+    <div class="flex-container">
+        <!-- Input Section -->
+        <div class="lg-w-1-3">
+            <div class="section-box">
+                <h2>Add New Part</h2>
+                <form id="partForm" class="form-section">
+                    <div class="form-input-group">
+                        <label for="partName">Name (optional)</label>
+                        <input type="text" id="partName">
+                    </div>
+                    <div class="form-input-group">
+                        <label for="partLength">Length (inches)</label>
+                        <input type="number" id="partLength" required min="1">
+                    </div>
+                    <div class="form-input-group">
+                        <label for="partWidth">Width (inches)</label>
+                        <input type="number" id="partWidth" required min="1">
+                    </div>
+                    <div class="form-input-group">
+                        <label for="partThickness">Thickness (quarters)</label>
+                        <input type="number" id="partThickness" required min="1">
+                    </div>
+                    <div class="form-input-group">
+                        <label for="partType">Type (e.g., Pine, Oak)</label>
+                        <input type="text" id="partType">
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="partGlueUp">
+                        <label for="partGlueUp">Allow Glue-Up</label>
+                    </div>
+                    <button type="submit" class="submit-button">
+                        Add Part
+                    </button>
+                </form>
+            </div>
+
+            <div class="section-box">
+                <h2>Add New Stock</h2>
+                <form id="stockForm" class="form-section">
+                    <div class="form-input-group">
+                        <label for="stockName">Name (optional)</label>
+                        <input type="text" id="stockName">
+                    </div>
+                    <div class="form-input-group">
+                        <label for="stockLength">Length (inches)</label>
+                        <input type="number" id="stockLength" required min="1">
+                    </div>
+                    <div class="form-input-group">
+                        <label for="stockWidth">Width (inches)</label>
+                        <input type="number" id="stockWidth" required min="1">
+                    </div>
+                    <div class="form-input-group">
+                        <label for="stockThickness">Thickness (quarters)</label>
+                        <input type="number" id="stockThickness" required min="1">
+                    </div>
+                    <div class="form-input-group">
+                        <label for="stockType">Type (e.g., Pine, Oak)</label>
+                        <input type="text" id="stockType" required>
+                    </div>
+                    <button type="submit" class="submit-button">
+                        Add Stock
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Display Section -->
+        <div class="lg-w-2-3">
+            <div class="section-box">
+                <h2>Parts to Pack</h2>
+                <div id="partsDisplay" class="display-flex">
+                    <p class="text-gray-500" id="noPartsMessage">Add parts to get started.</p>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <h2>Available Stock</h2>
+                <div id="stockDisplay" class="stock-display-section">
+                    <p class="text-gray-500" id="noStockMessage">Add stock to get started.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for messages -->
+<div id="messageModal" class="modal">
+    <div class="modal-content">
+        <p id="modalMessage" class="text-lg font-medium"></p>
+        <button id="closeMessageButton" class="submit-button" style="margin-top: 1rem; width: auto; padding: 0.5rem 1rem;">Close</button>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;" id="editModalTitle">Edit Item</h3>
+        <form id="editForm" class="form-section">
+            <input type="hidden" id="editId">
+            <input type="hidden" id="editType">
+            <div class="form-input-group">
+                <label for="editName">Name (optional)</label>
+                <input type="text" id="editName">
+            </div>
+            <div class="form-input-group">
+                <label for="editLength">Length (inches)</label>
+                <input type="number" id="editLength" required min="1">
+            </div>
+            <div class="form-input-group">
+                <label for="editWidth">Width (inches)</label>
+                <input type="number" id="editWidth" required min="1">
+            </div>
+            <div class="form-input-group">
+                <label for="editThickness">Thickness (quarters)</label>
+                <input type="number" id="editThickness" required min="1">
+            </div>
+            <div class="form-input-group">
+                <label for="editItemType">Type</label>
+                <input type="text" id="editItemType">
+            </div>
+            <div id="glueUpWrapper" class="checkbox-group">
+                <input type="checkbox" id="editGlueUp">
+                <label for="editGlueUp">Allow Glue-Up</label>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button type="button" id="cancelEditButton" style="padding: 0.5rem 1rem; background-color: #d1d5db; color: #374151; border-radius: 0.375rem; border: none;">Cancel</button>
+                <button type="submit" class="submit-button" style="width: auto; padding: 0.5rem 1rem;">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Custom Context Menu -->
+<div id="contextMenu" class="context-menu">
+    <button id="deleteButton" style="color: #dc2626;">Delete</button>
+</div>
+
+<script>
+    // Global variables
+    let parts = [];
+    let stock = [];
+    let selectedItem = null;
+    let selectedItemType = null;
+    const scaleFactor = 0.5; // Scale factor for visual representation
+
+    // --- Helper functions ---
+    function showMessage(message) {
+        const modal = document.getElementById('messageModal');
+        document.getElementById('modalMessage').textContent = message;
+        modal.style.display = 'flex';
+    }
+
+    // --- Local Storage Functions ---
+    function saveToLocalStorage() {
+        localStorage.setItem('lumberOptimizerParts', JSON.stringify(parts));
+        localStorage.setItem('lumberOptimizerStock', JSON.stringify(stock));
+    }
+
+    function loadFromLocalStorage() {
+        const storedParts = localStorage.getItem('lumberOptimizerParts');
+        const storedStock = localStorage.getItem('lumberOptimizerStock');
+        if (storedParts) {
+            parts = JSON.parse(storedParts);
+        }
+        if (storedStock) {
+            stock = JSON.parse(storedStock);
+        }
+        optimizeAndRender();
+    }
+
+    // --- Core Logic: Packing Algorithm ---
+    function optimizeAndRender() {
+        const partsToPack = JSON.parse(JSON.stringify(parts)); // Deep copy to avoid mutation
+        const stockAvailable = JSON.parse(JSON.stringify(stock)); // Deep copy
+
+        // Sort parts by area in descending order for better packing
+        partsToPack.sort((a, b) => (b.length * b.width) - (a.length * a.width));
+
+        // Reset stock packed info
+        stockAvailable.forEach(s => {
+            s.packedParts = [];
+            s.usedVolume = 0;
+            s.remainingRects = [{ x: 0, y: 0, w: s.width, h: s.length }];
+        });
+
+        // Attempt to pack each part
+        partsToPack.forEach(part => {
+            if (part.packed) return; // Skip parts already packed
+
+            const partVolume = part.length * part.width * part.thickness;
+
+            // Prioritize: Surfaced > Lamination (from single stock) > Lamination (from multiple stock) > Standard Cut > Width Glue-Up
+            if (part.glueUp) {
+                // Try Surfaced (cut from a single, thicker piece of stock)
+                const surfacedSolution = findSurfacedSolution(part, stockAvailable);
+                if (surfacedSolution) {
+                    part.packed = true;
+                    part.packedInfo = { isSurfaced: true, usedStockIds: [surfacedSolution.id] };
+                    surfacedSolution.packedParts.push(part);
+                    surfacedSolution.usedVolume += partVolume;
+                    return;
+                }
+
+                // Try Lamination (slicing a single stock piece for thickness)
+                const singleStockLaminationSolution = findLaminationFromSingleStockSolution(part, stockAvailable);
+                if (singleStockLaminationSolution) {
+                    part.packed = true;
+                    part.packedInfo = { isLaminated: true, usedStockIds: [singleStockLaminationSolution.id] };
+                    singleStockLaminationSolution.usedVolume += partVolume;
+                    singleStockLaminationSolution.packedParts.push(part);
+                    return;
+                }
+
+                // Try Lamination (joining multiple pieces for thickness)
+                const laminationSolution = findLaminationSolution(part, stockAvailable);
+                if (laminationSolution) {
+                    part.packed = true;
+                    part.packedInfo = { isLaminated: true, usedStockIds: laminationSolution.map(us => us.id) };
+                    laminationSolution.forEach(us => {
+                        us.usedVolume = us.width * us.length * us.thickness;
+                        us.packedParts.push(part);
+                    });
+                    return;
+                }
+            }
+            
+            // Try Standard Cut (exact thickness)
+            for (let i = 0; i < stockAvailable.length; i++) {
+                const s = stockAvailable[i];
+                const isCompatibleType = (part.type === '' || part.type === s.type);
+
+                if (isCompatibleType && Math.abs(part.thickness - s.thickness) < 0.001 && s.usedVolume < s.width * s.length * s.thickness) {
+                    if (findAndPlacePart(s, part.width, part.length, part)) {
+                        part.packed = true;
+                        s.packedParts.push(part);
+                        s.usedVolume += partVolume;
+                        return;
+                    }
+                }
+            }
+
+            // Finally, try a Width Glue-Up
+            if (!part.packed && part.glueUp) {
+                const widthGlueUpSolution = findWidthGlueUpSolution(part, stockAvailable);
+                if (widthGlueUpSolution) {
+                    part.packed = true;
+                    part.packedInfo = { isGlueUp: true, usedStockIds: widthGlueUpSolution.map(us => us.id) };
+                    widthGlueUpSolution.forEach(us => {
+                        us.usedVolume = us.width * us.length * us.thickness;
+                        us.packedParts.push(part);
+                    });
+                }
+            }
+        });
+
+        renderDisplay(partsToPack, stockAvailable);
+    }
+
+    // Finds an available rectangle in the stock and places the part
+    function findAndPlacePart(stockPiece, partW, partH, part) {
+        for (let i = 0; i < stockPiece.remainingRects.length; i++) {
+            const rect = stockPiece.remainingRects[i];
+            if (rect.w >= partW && rect.h >= partH) {
+                stockPiece.remainingRects.splice(i, 1);
+                part.packedInfo = { x: rect.x, y: rect.y, w: partW, h: partH, stockId: stockPiece.id, isGlueUp: false, isLaminated: false, isSurfaced: false };
+                
+                const newRect1 = { x: rect.x + partW, y: rect.y, w: rect.w - partW, h: partH };
+                const newRect2 = { x: rect.x, y: rect.y + partH, w: rect.w, h: rect.h - partH };
+
+                if (newRect1.w > 0 && newRect1.h > 0) {
+                    stockPiece.remainingRects.push(newRect1);
+                }
+                if (newRect2.w > 0 && newRect2.h > 0) {
+                    stockPiece.remainingRects.push(newRect2);
+                }
+                
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Finds a single stock piece to be surfaced down
+    function findSurfacedSolution(part, stockAvailable) {
+        for (const s of stockAvailable) {
+            const isCompatibleType = (part.type === '' || part.type === s.type);
+            if (isCompatibleType && s.thickness > part.thickness && s.length >= part.length && s.width >= part.width) {
+                 if (s.usedVolume === 0) {
+                    return s;
+                }
+            }
+        }
+        return null;
+    }
+
+    // Finds multiple slices from a single stock piece to be laminated
+    function findLaminationFromSingleStockSolution(part, stockAvailable) {
+        for (const s of stockAvailable) {
+            const isCompatibleType = (part.type === '' || part.type === s.type);
+            if (isCompatibleType && s.usedVolume === 0) {
+                const slicesNeeded = part.thicknessQuarters / s.thicknessQuarters;
+                if (Number.isInteger(slicesNeeded) && slicesNeeded > 1) {
+                    const totalWidthNeeded = part.width * slicesNeeded;
+                    if (s.length >= part.length && s.width >= totalWidthNeeded) {
+                        return s;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // Finds multiple stock pieces to be laminated for thickness
+    function findLaminationSolution(part, stockAvailable) {
+        const compatibleStock = stockAvailable.filter(s =>
+            (part.type === '' || part.type === s.type) &&
+            s.length >= part.length &&
+            s.width >= part.width &&
+            s.usedVolume === 0
+        );
+
+        compatibleStock.sort((a, b) => a.thickness - b.thickness);
+
+        let combinedThickness = 0;
+        let usedStockForLamination = [];
+        for (const s of compatibleStock) {
+            combinedThickness += s.thickness;
+            usedStockForLamination.push(s);
+            if (combinedThickness >= part.thickness) {
+                return usedStockForLamination;
+            }
+        }
+        return null;
+    }
+
+    // Finds multiple stock pieces to be glued up for width
+    function findWidthGlueUpSolution(part, stockAvailable) {
+        const compatibleStock = stockAvailable.filter(s => 
+            s.thickness === part.thickness && 
+            (part.type === '' || part.type === s.type) &&
+            s.length >= part.length &&
+            s.usedVolume === 0
+        );
+        
+        compatibleStock.sort((a, b) => a.width - b.width);
+        
+        let combinedWidth = 0;
+        let usedStock = [];
+        for (const s of compatibleStock) {
+            combinedWidth += s.width;
+            usedStock.push(s);
+            if (combinedWidth >= part.width) {
+                return usedStock;
+            }
+        }
+        return null;
+    }
+
+    // --- UI Rendering ---
+    function renderDisplay(partsToPack, stockAvailable) {
+        const partsDisplay = document.getElementById('partsDisplay');
+        const stockDisplay = document.getElementById('stockDisplay');
+        const contextMenu = document.getElementById('contextMenu');
+
+        partsDisplay.innerHTML = '';
+        stockDisplay.innerHTML = '';
+        selectedItem = null;
+
+        // Parts Display
+        if (partsToPack.length === 0) {
+            partsDisplay.innerHTML = '<p class="text-gray-500" id="noPartsMessage">Add parts to get started.</p>';
+        } else {
+            const noPartsMessage = document.getElementById('noPartsMessage');
+            if (noPartsMessage) noPartsMessage.remove();
+            partsToPack.forEach(part => {
+                const partEl = createItemElement(part, 'part');
+                partsDisplay.appendChild(partEl);
+            });
+        }
+
+        // Stock Display
+        if (stockAvailable.length === 0) {
+            stockDisplay.innerHTML = '<p class="text-gray-500" id="noStockMessage">Add stock to get started.</p>';
+        } else {
+            const noStockMessage = document.getElementById('noStockMessage');
+            if (noStockMessage) noStockMessage.remove();
+            stockAvailable.forEach(stockPiece => {
+                const stockEl = createItemElement(stockPiece, 'stock');
+                stockDisplay.appendChild(stockEl);
+
+                // Add packed parts to the stock display
+                stockPiece.packedParts.forEach(part => {
+                    if (!part.packedInfo || part.packedInfo.isGlueUp || part.packedInfo.isLaminated || part.packedInfo.isSurfaced) {
+                        return;
+                    }
+                    const packedPartEl = document.createElement('div');
+                    packedPartEl.className = `part-item`;
+                    packedPartEl.style.backgroundColor = '#60a5fa'; /* blue-400 */
+                    packedPartEl.style.borderColor = '#2563eb'; /* blue-600 */
+                    packedPartEl.style.position = 'absolute';
+                    packedPartEl.style.width = `${part.packedInfo.w * scaleFactor}px`;
+                    packedPartEl.style.height = `${part.packedInfo.h * scaleFactor}px`;
+                    packedPartEl.style.left = `${part.packedInfo.x * scaleFactor}px`;
+                    packedPartEl.style.top = `${part.packedInfo.y * scaleFactor}px`;
+                    packedPartEl.innerHTML = `<span class="text-overlay">${part.type}</span>`;
+                    stockEl.appendChild(packedPartEl);
+                });
+            });
+        }
+    }
+
+    function createItemElement(item, type) {
+        const itemEl = document.createElement('div');
+        itemEl.classList.add(`${type}-item`);
+        itemEl.dataset.id = item.id;
+        itemEl.dataset.type = type;
+
+        if (type === 'part') {
+            const isPacked = item.packed;
+            itemEl.style.borderColor = isPacked ? '#22c55e' : '#ef4444'; /* green-500 : red-500 */
+            itemEl.style.backgroundColor = isPacked ? '#dcfce7' : '#fee2e2'; /* green-100 : red-100 */
+            itemEl.style.width = `${Math.max(item.width * scaleFactor, 80)}px`;
+            itemEl.style.height = `${Math.max(item.length * scaleFactor, 80)}px`;
+            const displayType = item.type === '' ? 'Any Type' : item.type;
+            let glueUpLabel = '';
+            if (item.packedInfo?.isSurfaced) {
+                glueUpLabel = 'SURFACED';
+            } else if (item.packedInfo?.isLaminated) {
+                glueUpLabel = 'LAMINATED';
+            } else if (item.packedInfo?.isGlueUp) {
+                glueUpLabel = 'GLUED UP';
+            }
+            itemEl.innerHTML = `
+                ${item.name ? `<span class="font-semibold" style="margin-top: 0.25rem; font-size: 0.875rem;">${item.name}</span>` : ''}
+                <span class="part-info font-medium">${displayType}</span>
+                <span class="text-xs text-gray-600">${item.length}"x${item.width}"</span>
+                <span class="text-xs text-gray-600">${item.thicknessQuarters}/4" (${item.thickness}")</span>
+                ${glueUpLabel ? `<span class="text-xs font-semibold" style="color: #1f2937; margin-top: 0.25rem;">${glueUpLabel}</span>` : ''}
+            `;
+        } else { // stock
+            const stockTotalVolume = item.length * item.width * item.thickness;
+            const utilization = stockTotalVolume > 0 ? (item.usedVolume / stockTotalVolume) : 0;
+            
+            if (utilization > 0) {
+                const hue = 120 - Math.round(utilization * 120);
+                itemEl.style.borderColor = '#16a34a'; /* green-600 */
+                itemEl.style.backgroundColor = `hsl(${hue}, 100%, 85%)`;
+            } else {
+                itemEl.style.borderColor = '#f87171'; /* red-400 */
+                itemEl.style.backgroundColor = '#fecaca'; /* red-200 */
+            }
+            itemEl.style.height = `${Math.max(item.length * scaleFactor, 80)}px`;
+            itemEl.style.width = `${Math.max(item.width * scaleFactor, 80)}px`;
+            itemEl.style.position = 'relative';
+            itemEl.innerHTML = `
+                <div class="stock-info" style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 10; font-size: 0.875rem; font-weight: 600;">
+                    ${item.name ? `<p>${item.name}</p>` : ''}
+                    <p>${item.type}</p>
+                    <p>${item.length}"x${item.width}"</p>
+                    <p>${item.thicknessQuarters}/4" (${item.thickness}")</p>
+                    <p style="font-size: 0.75rem; font-weight: 400;">Utilization: ${(utilization * 100).toFixed(1)}%</p>
+                </div>
+            `;
+        }
+
+        // Add event listeners for interaction
+        itemEl.addEventListener('click', (e) => {
+            selectItem(itemEl);
+        });
+        itemEl.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            editItem(item.id, type);
+        });
+        itemEl.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            selectItem(itemEl);
+            showContextMenu(e.pageX, e.pageY);
+        });
+        
+        return itemEl;
+    }
+
+    function selectItem(element) {
+        if (selectedItem) {
+            selectedItem.classList.remove('selected-item');
+        }
+        selectedItem = element;
+        selectedItemType = element.dataset.type;
+        selectedItem.classList.add('selected-item');
+    }
+
+    function showContextMenu(x, y) {
+        const contextMenu = document.getElementById('contextMenu');
+        contextMenu.style.display = 'block';
+        contextMenu.style.left = `${x}px`;
+        contextMenu.style.top = `${y}px`;
+    }
+
+    function hideContextMenu() {
+        document.getElementById('contextMenu').style.display = 'none';
+    }
+
+    // --- Edit and Delete Logic ---
+
+    function editItem(id, type) {
+        const item = (type === 'part' ? parts : stock).find(i => i.id === id);
+        if (!item) {
+            showMessage("Item not found for editing.");
+            return;
+        }
+
+        const editModal = document.getElementById('editModal');
+        document.getElementById('editId').value = id;
+        document.getElementById('editType').value = type;
+        document.getElementById('editName').value = item.name || '';
+        document.getElementById('editLength').value = item.length;
+        document.getElementById('editWidth').value = item.width;
+        document.getElementById('editThickness').value = item.thicknessQuarters;
+        document.getElementById('editItemType').value = item.type;
+
+        const glueUpWrapper = document.getElementById('glueUpWrapper');
+        if (type === 'part') {
+            glueUpWrapper.style.display = 'flex';
+            document.getElementById('editGlueUp').checked = item.glueUp;
+        } else {
+            glueUpWrapper.style.display = 'none';
+        }
+
+        editModal.style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    async function deleteItem(id, type) {
+        if (type === 'part') {
+            parts = parts.filter(p => p.id !== id);
+        } else {
+            stock = stock.filter(s => s.id !== id);
+        }
+        saveToLocalStorage();
+        optimizeAndRender();
+    }
+
+    // --- Form Handlers and Data Interaction ---
+
+    // Add part form handler
+    document.getElementById('partForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const thicknessQuarters = parseFloat(document.getElementById('partThickness').value);
+        const part = {
+            id: Date.now().toString(),
+            name: document.getElementById('partName').value,
+            length: parseFloat(document.getElementById('partLength').value),
+            width: parseFloat(document.getElementById('partWidth').value),
+            thickness: thicknessQuarters / 4,
+            thicknessQuarters: thicknessQuarters,
+            type: document.getElementById('partType').value,
+            glueUp: document.getElementById('partGlueUp').checked,
+        };
+        parts.push(part);
+        saveToLocalStorage();
+        optimizeAndRender();
+
+        // Persist form values
+        document.getElementById('partName').value = part.name;
+        document.getElementById('partLength').value = part.length;
+        document.getElementById('partWidth').value = part.width;
+        document.getElementById('partThickness').value = part.thicknessQuarters;
+        document.getElementById('partType').value = part.type;
+        document.getElementById('partGlueUp').checked = part.glueUp;
+    });
+
+    // Add stock form handler
+    document.getElementById('stockForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const thicknessQuarters = parseFloat(document.getElementById('stockThickness').value);
+        const stockPiece = {
+            id: Date.now().toString(),
+            name: document.getElementById('stockName').value,
+            length: parseFloat(document.getElementById('stockLength').value),
+            width: parseFloat(document.getElementById('stockWidth').value),
+            thickness: thicknessQuarters / 4,
+            thicknessQuarters: thicknessQuarters,
+            type: document.getElementById('stockType').value,
+        };
+        stock.push(stockPiece);
+        saveToLocalStorage();
+        optimizeAndRender();
+
+        // Persist form values
+        document.getElementById('stockName').value = stockPiece.name;
+        document.getElementById('stockLength').value = stockPiece.length;
+        document.getElementById('stockWidth').value = stockPiece.width;
+        document.getElementById('stockThickness').value = stockPiece.thicknessQuarters;
+        document.getElementById('stockType').value = stockPiece.type;
+    });
+
+    // Edit form handler
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+        const type = document.getElementById('editType').value;
+        const thicknessQuarters = parseFloat(document.getElementById('editThickness').value);
+        const newData = {
+            name: document.getElementById('editName').value,
+            length: parseFloat(document.getElementById('editLength').value),
+            width: parseFloat(document.getElementById('editWidth').value),
+            thickness: thicknessQuarters / 4,
+            thicknessQuarters: thicknessQuarters,
+            type: document.getElementById('editItemType').value,
+        };
+
+        if (type === 'part') {
+            const index = parts.findIndex(p => p.id === id);
+            if (index !== -1) {
+                parts[index] = { ...parts[index], ...newData, glueUp: document.getElementById('editGlueUp').checked };
+            }
+        } else {
+            const index = stock.findIndex(s => s.id === id);
+            if (index !== -1) {
+                stock[index] = { ...stock[index], ...newData };
+            }
+        }
+        saveToLocalStorage();
+        optimizeAndRender();
+        closeEditModal();
+    });
+
+    // Global event listeners
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Delete' && selectedItem) {
+            const id = selectedItem.dataset.id;
+            const type = selectedItem.dataset.type;
+            deleteItem(id, type);
+        }
+    });
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('.context-menu')) {
+            hideContextMenu();
+        }
+        if (!e.target.closest('.part-item, .stock-item, .context-menu, .modal-content')) {
+            if (selectedItem) {
+                selectedItem.classList.remove('selected-item');
+                selectedItem = null;
+            }
+        }
+    });
+
+    // Handle delete button in context menu
+    document.getElementById('deleteButton').addEventListener('click', () => {
+        if (selectedItem) {
+            const id = selectedItem.dataset.id;
+            const type = selectedItem.dataset.type;
+            deleteItem(id, type);
+            hideContextMenu();
+        }
+    });
+
+    // Event listeners for modal buttons
+    document.getElementById('cancelEditButton').addEventListener('click', closeEditModal);
+    document.getElementById('closeMessageButton').addEventListener('click', () => {
+      document.getElementById('messageModal').style.display='none';
+    });
+
+    // Initial load from local storage
+    window.onload = loadFromLocalStorage;
+</script>
+</body>
+</html>
